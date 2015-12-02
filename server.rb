@@ -26,8 +26,7 @@ class Server
         end
 
         if response[1].start_with?("/tracking")
-          response = @tracker.getFlights || "ptjer"
-          puts response
+          response = @tracker.getFlights
         end
 
         unless response.nil?

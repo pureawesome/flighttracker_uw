@@ -7,7 +7,7 @@ $(document).ready(function(){
       url: "http://localhost:3000/entry?flight=" + flight_id
     })
     .done(function(msg) {
-      console.log('saved' + msg);
+      console.log('saved ' + msg);
     });
   }
   createFlight();
@@ -18,14 +18,14 @@ $(document).ready(function(){
       url: "http://localhost:3000/tracking_info"
     })
     .done(function(data) {
-      console.log(data);
+      // console.log(data);
       $('.marketing .col-lg-6').html(data);
     });
   }
   getFlights();
 
   (function loop_flight() {
-    var rand = Math.floor(Math.random() * (45000 - 25000) + 25000);
+    var rand = Math.floor(Math.random() * (45000 - 20000) + 20000);
     console.log(rand);
     setTimeout(function() {
             createFlight();
@@ -35,7 +35,6 @@ $(document).ready(function(){
 
   (function loop_data() {
     setTimeout(function() {
-      console.log('getdata');
       getFlights();
       loop_data();
     }, 5000);
