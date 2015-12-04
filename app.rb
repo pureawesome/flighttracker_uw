@@ -37,32 +37,94 @@ CreateFlights.new.change
 
 
 class FlightTracker
-  STANDARD_LENGTH = 65291
-  FINAL_LENGTH = 15021
-  FINAL_SPEED = 70
   MIN_DISTANCE = 5200
 
+  STANDARD_LENGTH = 65291
+  ENTRY_ALT = 10000
+
+  FINAL_LENGTH = 15021
+  FINAL_SPEED = 70
+  FINAL_APP_ALT = 800
+
+  STANDARD_LAND_DISTANCE = Math.sqrt(65291**2 - (ENTRY_ALT - FINAL_APP_ALT)**2)  # horizontal length
+  DESCENT_SLOPE = (ENTRY_ALT - FINAL_APP_ALT) / STANDARD_LAND_DISTANCE # rise / run
+
+  FINAL_LAND_DISTANCE = Math.sqrt(15021**2 - FINAL_APP_ALT**2) #15000
+  FINAL_DESCENT_SLOPE = FINAL_APP_ALT / FINAL_LAND_DISTANCE  #0.053
+
+  def get_x(land_distance)
+    ( 2.1e-12 * land_distance**3 ) - ( 4.41e-6 * land_distance**2 ) + ( 0.047 * land_distance ) + 16000
+  end
+
+  def get_y(land_distance)
+    ( 2.23e-14 * land_distance**4 ) - ( 2e-9 * land_distance**3 ) + ( 1.02e-4 * land_distance**2 ) - ( 5 * land_distance ) + 47000
+  end
+
+  def get_altitude(land_distance)
+    (STANDARD_LAND_DISTANCE - land_distance) * DESCENT_SLOPE + 800
+  end
 
   def computeSpeed(time)
-    prev_flight = Flight.where(status: 'descent').last
+    prev_flight = Flight.where.not(status: 'diverted').last
     unless prev_flight.nil?
+      #divert if plane enters too close.
+      if ((time - prev_flight.entry_time) * prev_flight.speed) < MIN_DISTANCE
+        puts 'too close'
+        return [128, 0, 'diverted']
+      end
+
       ideal_speed = (STANDARD_LENGTH - MIN_DISTANCE) / (prev_flight.final_start - time)
-      speed = ideal_speed > 128 ? 128 : ideal_speed
+      speed = ideal_speed > 128 || ideal_speed < 0 ? 128 : ideal_speed
+
+      #divert if plan has to slow down too much.
+      if speed < 105
+        puts 'ideal speed too slow'
+        return [128, 0, 'diverted']
+      end
     else
       speed = 128
     end
 
-    if speed < 120
-      return [128, 0, 'diverted']
-    else
-      final_approach_time = Time.now + (65291 / speed).seconds
-      return [speed, final_approach_time, 'descent']
-    end
+    final_approach_time = Time.now + (65291 / speed).seconds
+    [speed, final_approach_time, 'descent']
   end
 
-  def computeLocation(flight)
-    flight_info = {flight: flight.flight_number, x: 4200, y: 23004, altitude: 8000, status: flight.status}
-    flight_info
+  def computeLocation(flight, call_time)
+    if flight.final_start < call_time
+       current_data = calculateFinal(flight, call_time)
+    else
+      current_data = calculateDescent(flight, call_time)
+    end
+    flight_data = {flight: flight.flight_number, x: current_data[0], y: current_data[1], altitude: current_data[2], status: flight.status}
+  end
+
+
+
+  def calculateDescent(flight, call_time)
+    distance_traveled = flight.speed * (call_time - flight.entry_time)
+    land_traveled = distance_traveled / Math.sqrt(DESCENT_SLOPE**2 + 1)
+    descent_info = [get_x(land_traveled), get_y(land_traveled), get_altitude(land_traveled)]
+  end
+
+  def calculateFinal(flight, call_time)
+    # descend 800 ft and slow from flight.speed to FINAL_SPEED
+    flight.status = 'landing'
+
+    deceleration = (FINAL_SPEED - flight.speed) / 2 * FINAL_LAND_DISTANCE  #v^2 = u^2 + 2as
+    time_elapsed = call_time - flight.final_start
+    distance_traveled = flight.speed * time_elapsed + (1/2) * deceleration * time_elapsed
+    land_distance = distance_traveled / Math.sqrt(FINAL_DESCENT_SLOPE**2 + 1)
+
+    final_x = 0
+    final_y = land_distance
+    final_alt = (FINAL_LAND_DISTANCE - land_distance) * FINAL_DESCENT_SLOPE
+
+    if final_alt < 0
+      flight.status = 'landed'
+      flight_completed_info = [final_x, FINAL_LAND_DISTANCE, 0]
+    else
+      final_descent_info = [final_x, final_y, final_alt]
+    end
   end
 
   def logFlight(flight_number)
@@ -74,10 +136,16 @@ class FlightTracker
 
   def getFlights
     flights_data = []
-    flights = Flight.where(created_at: (Time.now - 3.minutes)..(Time.now))
-    flights.each {|flight| flights_data << computeLocation(flight)}
-    flights_json = {aircrafts: flights_data}
-    flights_json.to_json
+    call_time = Time.now
+    Flight.where(created_at: (Time.now - 15.minutes)..(call_time)).each do |flight|
+
+      if flight.status == 'diverted'
+        flights_data << {flight: flight.flight_number, x: 10000, y: -14000, altitude: 10000, status: flight.status}
+      else
+        flights_data << computeLocation(flight, call_time)
+      end
+    end
+    flights_json = {aircrafts: flights_data}.to_json
   end
 
 end
