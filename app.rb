@@ -57,7 +57,7 @@ class FlightTracker
   end
 
   def get_y(land_distance)
-    ( 2.23e-14 * land_distance**4 ) - ( 2e-9 * land_distance**3 ) + ( 1.02e-4 * land_distance**2 ) - ( 5 * land_distance ) + 47000
+    ( 2.23e-14 * land_distance**4 ) - ( 2e-9 * land_distance**3 ) + ( 1.022e-4 * land_distance**2 ) - ( 5 * land_distance ) + 47000
   end
 
   def get_altitude(land_distance)
@@ -130,8 +130,8 @@ class FlightTracker
   def logFlight(flight_number)
     enter_at = Time.now
     flight_data = computeSpeed(enter_at)
-    Flight.create(flight_number: flight_number, speed: flight_data[0], entry_time: enter_at, final_start: flight_data[1], status: flight_data[2] )
-    puts flight_number + ' created.'
+    flight = Flight.create(flight_number: flight_number, speed: flight_data[0], entry_time: enter_at, final_start: flight_data[1], status: flight_data[2] )
+    { flight: flight.flight_number, status: flight.status }.to_json
   end
 
   def getFlights

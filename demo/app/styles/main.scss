@@ -67,6 +67,23 @@ body {
   }
 }
 
+table {
+  margin-top: 25px;
+  border:1px solid black;
+  padding: 5px;
+  text-align:center;
+}
+thead {
+  border-bottom: 1px solid black;
+  th {border-right: 1px solid black; text-align:center;}
+}
+
+
+
+.odd {
+  background: #ccc;
+}
+
 /* Responsive: Portrait tablets and up */
 @media screen and (min-width: 768px) {
   .container {

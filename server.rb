@@ -13,20 +13,20 @@ class Server
       Thread.start(@server.accept) do |client|
         params = []
         response = client.gets.split(' ')
+
         if response[1].start_with?("/entry")
           flight_id = response[1][/([A-Z])\w+/]
           unless flight_id.nil?
-            @tracker.logFlight(flight_id)
-
-            response = flight_id + " added to the database."
+            response = @tracker.logFlight(flight_id)
           else
             puts 'no good'
             raise ArgumentError.new("The is not a compatible flight")
           end
-        end
 
-        if response[1].start_with?("/tracking")
+        elsif response[1].start_with?("/tracking")
           response = @tracker.getFlights
+        else
+          response = 'You have successfully reached the Flight Tracker API but that is not an acceptable route.'
         end
 
         unless response.nil?

@@ -21,29 +21,25 @@ $(document).ready(function(){
       if (data.length > 0) {
         json = $.parseJSON(data);
         $('#positive').empty();
+        $('.table table tbody').empty();
         $.each(json.aircrafts, function(i, aircraft) {
            x_axis = (aircraft.x / 20000) * 100;
            y_axis = (aircraft.y / 70000) * -100;
            alt = Math.floor(aircraft.altitude);
            $("#positive").append('<div style="position:absolute; left: '+x_axis+'%; top: '+y_axis+'%;"> X - ' + aircraft.flight + ' @'+ alt +'m</div>');
+           $('.table table tbody').append('<tr><td>'+ aircraft.flight +'</td><td>'+Math.floor(x_axis)+'</td><td>'+Math.floor(y_axis)+'</td><td>'+Math.floor(alt)+'</td><td>'+aircraft.status+'</td></tr>');
         });
+        $('tr:odd').addClass('odd');
       }
-
-      $('.marketing .col-lg-6').html(data);
     });
   }
   getFlights();
 
-  function plotData(data) {
-
-  }
-
   (function loop_flight() {
     var rand = Math.floor(Math.random() * (45000 - 25000) + 25000);
-    console.log(rand);
     setTimeout(function() {
-            createFlight();
-            loop_flight();
+      createFlight();
+      loop_flight();
     }, rand);
   }());
 
@@ -51,7 +47,7 @@ $(document).ready(function(){
     setTimeout(function() {
       getFlights();
       loop_data();
-    }, 5000);
+    }, 4000);
   }());
 
 });
