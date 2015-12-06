@@ -2,3 +2,5 @@ DATABASE = ""
 HOST = ""
 USERNAME = ""
 PASSWORD = ""
+
+DOMAIN = ""
