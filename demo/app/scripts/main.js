@@ -7,7 +7,7 @@ $(document).ready(function(){
       url: "http://localhost:3000/entry?flight=" + flight_id
     })
     .done(function(msg) {
-      console.log('saved ' + msg);
+      console.log(msg);
     });
   }
   createFlight();
@@ -26,8 +26,8 @@ $(document).ready(function(){
            x_axis = (aircraft.x / 20000) * 100;
            y_axis = (aircraft.y / 70000) * -100;
            alt = Math.floor(aircraft.altitude);
-           $("#positive").append('<div style="position:absolute; left: '+x_axis+'%; top: '+y_axis+'%;"> X - ' + aircraft.flight + ' @'+ alt +'m</div>');
-           $('.table table tbody').append('<tr><td>'+ aircraft.flight +'</td><td>'+Math.floor(x_axis)+'</td><td>'+Math.floor(y_axis)+'</td><td>'+Math.floor(alt)+'</td><td>'+aircraft.status+'</td></tr>');
+           $("#positive").append('<div class="flight" style="left: '+x_axis+'%; top: '+y_axis+'%;"><span class="marker"></span><span class="flight_number" style="background-color: rgba(0,0,'+Math.floor((alt/10000)*255)+',0.7);">' + aircraft.flight + ' @'+ alt +'m</span></div>');
+           $('.table table tbody').append('<tr><td>'+ aircraft.flight +'</td><td>'+Math.floor(aircraft.x)+'</td><td>'+Math.floor(aircraft.y)+'</td><td>'+Math.floor(alt)+'</td><td>'+aircraft.status+'</td></tr>');
         });
         $('tr:odd').addClass('odd');
       }
@@ -47,7 +47,7 @@ $(document).ready(function(){
     setTimeout(function() {
       getFlights();
       loop_data();
-    }, 4000);
+    }, 3500);
   }());
 
 });

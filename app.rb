@@ -1,12 +1,13 @@
 require 'active_support/all'
 require 'active_record'
 require 'mysql2'
+require './login.rb'
 
 ActiveRecord::Base.establish_connection(
   adapter: "mysql2",
-  database: "flight_tracker",
-  host: "127.0.0.1",
-  username: "root"
+  database: DATABASE,
+  host: HOST,
+  username: USERNAME
 )
 
 class CreateFlights < ActiveRecord::Migration
@@ -60,8 +61,8 @@ class FlightTracker
     ( 2.23e-14 * land_distance**4 ) - ( 2e-9 * land_distance**3 ) + ( 1.022e-4 * land_distance**2 ) - ( 5 * land_distance ) + 47000
   end
 
-  def get_altitude(land_distance)
-    (STANDARD_LAND_DISTANCE - land_distance) * DESCENT_SLOPE + 800
+  def get_altitude(land_distance, overall_land_distance, slope)
+    (overall_land_distance - land_distance) * slope + 800
   end
 
   def computeSpeed(time)
@@ -95,15 +96,20 @@ class FlightTracker
     else
       current_data = calculateDescent(flight, call_time)
     end
-    flight_data = {flight: flight.flight_number, x: current_data[0], y: current_data[1], altitude: current_data[2], status: flight.status}
+    {flight: flight.flight_number, x: current_data[0], y: current_data[1], altitude: current_data[2], status: flight.status}
   end
 
-
+  def calculateDiverted(time_elapsed)
+    a = (time_elapsed % 360) * (Math::PI / 180)
+    x = 6000 + 3500 * Math::cos(a)
+    y = 35000 + 25000 * Math::sin(a)
+    [x, y]
+  end
 
   def calculateDescent(flight, call_time)
     distance_traveled = flight.speed * (call_time - flight.entry_time)
     land_traveled = distance_traveled / Math.sqrt(DESCENT_SLOPE**2 + 1)
-    descent_info = [get_x(land_traveled), get_y(land_traveled), get_altitude(land_traveled)]
+    [get_x(land_traveled), get_y(land_traveled), get_altitude(land_traveled, STANDARD_LAND_DISTANCE, DESCENT_SLOPE)]
   end
 
   def calculateFinal(flight, call_time)
@@ -121,9 +127,9 @@ class FlightTracker
 
     if final_alt < 0
       flight.status = 'landed'
-      flight_completed_info = [final_x, FINAL_LAND_DISTANCE, 0]
+      [final_x, FINAL_LAND_DISTANCE, 0]
     else
-      final_descent_info = [final_x, final_y, final_alt]
+      [final_x, final_y, final_alt]
     end
   end
 
@@ -135,17 +141,18 @@ class FlightTracker
   end
 
   def getFlights
-    flights_data = []
-    call_time = Time.now
-    Flight.where(created_at: (Time.now - 15.minutes)..(call_time)).each do |flight|
+    @flights_data = []
+    @call_time = Time.now
+    Flight.where(created_at: (Time.now - 15.minutes)..(@call_time)).each do |flight|
 
       if flight.status == 'diverted'
-        flights_data << {flight: flight.flight_number, x: 10000, y: -14000, altitude: 10000, status: flight.status}
+        @diverted_info = calculateDiverted(Time.now - flight.created_at)
+        @flights_data << {flight: flight.flight_number, x: @diverted_info[0], y: @diverted_info[1], altitude: 10000, status: flight.status}
       else
-        flights_data << computeLocation(flight, call_time)
+        @flights_data << computeLocation(flight, @call_time)
       end
     end
-    flights_json = {aircrafts: flights_data}.to_json
+    {aircrafts: @flights_data}.to_json
   end
 
 end

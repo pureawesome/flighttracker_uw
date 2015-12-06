@@ -11,7 +11,6 @@ class Server
   def run
     loop do
       Thread.start(@server.accept) do |client|
-        params = []
         response = client.gets.split(' ')
 
         if response[1].start_with?("/entry")
