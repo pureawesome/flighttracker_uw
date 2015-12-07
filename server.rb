@@ -4,7 +4,7 @@ require_relative 'login'
 
 class Server
   def initialize(port)
-    @server = TCPServer.open(port)
+    @server = TCPServer.open('localhost',port)
     @tracker = FlightTracker.new
     run
   end
@@ -13,13 +13,13 @@ class Server
     loop do
       Thread.start(@server.accept) do |client|
         response = client.gets.split(' ')
-        
+
         if response[1].start_with?("/entry")
           flight_id = response[1][/([A-Z])\w+/]
           unless flight_id.nil?
             response = @tracker.logFlight(flight_id)
           else
-            raise ArgumentError.new("The is not a compatible flight")
+            raise ArgumentError.new("That is not a compatible flight")
           end
 
         elsif response[1].start_with?("/tracking")

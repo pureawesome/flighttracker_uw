@@ -67,19 +67,23 @@ class FlightTracker
 
   def computeSpeed(time)
     prev_flight = Flight.where.not(status: 'diverted').last
-    unless prev_flight.nil?
+    unless prev_flight.nil? and time < prev_flight.entry_time
       #divert if plane enters too close.
-      if ((time - prev_flight.entry_time) * prev_flight.speed) < MIN_DISTANCE
-        puts 'Diverted: Too close. ' + time
-        return [128, 0, 'diverted']
-      end
+      puts (time - prev_flight.entry_time) * prev_flight.speed
+      # if ((time - prev_flight.entry_time) * prev_flight.speed) < MIN_DISTANCE
+      #   puts "Diverted: Too close."
+      #   return [128, 0, 'diverted']
+      # end
 
       ideal_speed = (STANDARD_LENGTH - MIN_DISTANCE) / (prev_flight.final_start - time)
-      speed = ideal_speed > 128 || ideal_speed < 0 ? 128 : ideal_speed
+
+      puts ideal_speed
+
+      speed = ideal_speed > 128 ? 128 : ideal_speed
 
       #divert if plan has to slow down too much.
       if speed < 105
-        puts 'Diverted: Ideal speed too slow. ' + time
+        puts "Diverted: Ideal speed too slow."
         return [128, 0, 'diverted']
       end
     else

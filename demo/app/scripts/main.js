@@ -4,13 +4,15 @@
   'use strict';
 
   $(document).ready(function(){
+    var local = 'http://localhost:3000';
     var dev = 'http://ec2-52-35-2-247.us-west-2.compute.amazonaws.com:3000';
+    var url = local;
 
     function createFlight() {
       var flightId = Math.random().toString(36).replace(/[^a-z]+/g, '').slice(2, 4).toUpperCase() + Math.random().toString().slice(2, 5);
       $.ajax({
         method: 'GET',
-        url: dev + '/entry?flight=' + flightId
+        url: url + '/entry?flight=' + flightId
       })
       .done(function(msg) {
         console.log(msg);
@@ -21,7 +23,7 @@
     function getFlights() {
       $.ajax({
         method: 'GET',
-        url: dev + '/tracking_info'
+        url: url + '/tracking_info'
       })
       .done(function(data) {
         if (data.length > 0) {
