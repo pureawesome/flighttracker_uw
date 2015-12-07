@@ -1,7 +1,7 @@
 require 'active_support/all'
 require 'active_record'
 require 'mysql2'
-require './login.rb'
+require './login'
 
 ActiveRecord::Base.establish_connection(
   adapter: "mysql2",

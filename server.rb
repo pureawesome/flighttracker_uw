@@ -1,5 +1,6 @@
 require 'socket'
 require './app'
+require './login'
 
 class Server
   def initialize(port, ip)
@@ -47,4 +48,4 @@ class Server
 end
 
 
-Server.new(3000, "localhost")
+Server.new(3000, DOMAIN)
