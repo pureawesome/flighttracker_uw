@@ -1,10 +1,10 @@
 require 'socket'
-require './app'
-require './login'
+require_relative 'app'
+require_relative 'login'
 
 class Server
-  def initialize(port, ip)
-    @server = TCPServer.open(ip, port)
+  def initialize(port)
+    @server = TCPServer.open(port)
     @tracker = FlightTracker.new
     run
   end
@@ -19,7 +19,6 @@ class Server
           unless flight_id.nil?
             response = @tracker.logFlight(flight_id)
           else
-            puts 'no good'
             raise ArgumentError.new("The is not a compatible flight")
           end
 
@@ -48,4 +47,4 @@ class Server
 end
 
 
-Server.new(3000, DOMAIN)
+Server.new(3000)

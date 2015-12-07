@@ -1,13 +1,14 @@
 require 'active_support/all'
 require 'active_record'
 require 'mysql2'
-require './login'
+require_relative 'login'
 
 ActiveRecord::Base.establish_connection(
   adapter: "mysql2",
   database: DATABASE,
   host: HOST,
-  username: USERNAME
+  username: USERNAME,
+  password: PASSWORD
 )
 
 class CreateFlights < ActiveRecord::Migration
