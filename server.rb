@@ -13,7 +13,7 @@ class Server
     loop do
       Thread.start(@server.accept) do |client|
         response = client.gets.split(' ')
-
+        
         if response[1].start_with?("/entry")
           flight_id = response[1][/([A-Z])\w+/]
           unless flight_id.nil?

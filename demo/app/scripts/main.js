@@ -4,8 +4,7 @@
   'use strict';
 
   $(document).ready(function(){
-    var local = 'http://localhost';
-    var dev = 'http://ec2-52-35-2-247.us-west-2.compute.amazonaws.com';
+    var dev = 'http://ec2-52-35-2-247.us-west-2.compute.amazonaws.com:3000';
 
     function createFlight() {
       var flightId = Math.random().toString(36).replace(/[^a-z]+/g, '').slice(2, 4).toUpperCase() + Math.random().toString().slice(2, 5);

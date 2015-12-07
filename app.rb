@@ -37,7 +37,6 @@ end
 
 CreateFlights.new.change
 
-
 class FlightTracker
   MIN_DISTANCE = 5200
 
@@ -71,7 +70,7 @@ class FlightTracker
     unless prev_flight.nil?
       #divert if plane enters too close.
       if ((time - prev_flight.entry_time) * prev_flight.speed) < MIN_DISTANCE
-        puts 'too close'
+        puts 'Diverted: Too close. ' + time
         return [128, 0, 'diverted']
       end
 
@@ -80,7 +79,7 @@ class FlightTracker
 
       #divert if plan has to slow down too much.
       if speed < 105
-        puts 'ideal speed too slow'
+        puts 'Diverted: Ideal speed too slow. ' + time
         return [128, 0, 'diverted']
       end
     else
@@ -114,7 +113,6 @@ class FlightTracker
   end
 
   def calculateFinal(flight, call_time)
-    # descend 800 ft and slow from flight.speed to FINAL_SPEED
     flight.status = 'landing'
 
     deceleration = (FINAL_SPEED - flight.speed) / 2 * FINAL_LAND_DISTANCE  #v^2 = u^2 + 2as
@@ -142,18 +140,18 @@ class FlightTracker
   end
 
   def getFlights
-    @flights_data = []
-    @call_time = Time.now
-    Flight.where(created_at: (Time.now - 15.minutes)..(@call_time)).each do |flight|
+    flights_data = []
+    call_time = Time.now
+    Flight.where(created_at: (Time.now - 15.minutes)..(call_time)).each do |flight|
 
       if flight.status == 'diverted'
-        @diverted_info = calculateDiverted(Time.now - flight.created_at)
-        @flights_data << {flight: flight.flight_number, x: @diverted_info[0], y: @diverted_info[1], altitude: 10000, status: flight.status}
+        diverted_info = calculateDiverted(Time.now - flight.created_at)
+        flights_data << {flight: flight.flight_number, x: diverted_info[0], y: diverted_info[1], altitude: 10000, status: flight.status}
       else
-        @flights_data << computeLocation(flight, @call_time)
+        flights_data << computeLocation(flight, call_time)
       end
     end
-    {aircrafts: @flights_data}.to_json
+    {aircrafts: flights_data}.to_json
   end
 
 end
