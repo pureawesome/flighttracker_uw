@@ -50,7 +50,7 @@
     getFlights();
 
     (function loopFlight() {
-      var rand = Math.floor(Math.random() * (50000 - 30000) + 30000);
+      var rand = Math.floor(Math.random() * (50000 - 25000) + 25000);
       setTimeout(function() {
         createFlight();
         loopFlight();
