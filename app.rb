@@ -97,16 +97,6 @@ class FlightTracker
     {flight: flight.flight_number, x: current_data[0], y: current_data[1], altitude: current_data[2], speed: current_data[3], status: flight.status}
   end
 
-  def calculateDiverted(time_elapsed)
-    #elli = x**2/10 + y**2/2
-    #circum = 56406.23
-
-    a = (time_elapsed % 360) * (Math::PI / 180)
-    x = 6000 + 5500 * Math::cos(a)
-    y = 40000 + 20000 * Math::sin(a)
-    [x, y]
-  end
-
   def calculateDescent(flight, call_time)
     distance_traveled = flight.speed * (call_time - flight.entry_time)
     land_traveled = get_land_traveled(distance_traveled, DESCENT_SLOPE)
@@ -146,8 +136,7 @@ class FlightTracker
     Flight.where(created_at: (Time.now - 15.minutes)..(call_time)).each do |flight|
 
       if flight.status == 'diverted'
-        diverted_info = calculateDiverted(Time.now - flight.created_at)
-        flights_data << {flight: flight.flight_number, x: diverted_info[0], y: diverted_info[1], altitude: 10000, speed: 105, status: flight.status}
+        flights_data << {flight: flight.flight_number, x: 16000, y: 50000, altitude: 10000, speed: 128, status: flight.status}
       else
         flights_data << computeLocation(flight, call_time)
       end

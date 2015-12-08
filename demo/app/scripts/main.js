@@ -5,10 +5,10 @@
 
   $(document).ready(function(){
     var url;
-    if (document.location.hostname == "localhost") {
+    if (document.location.hostname === 'localhost') {
       url = 'http://localhost:3000';
     } else {
-      url = 'http://ec2-52-35-2-247.us-west-2.compute.amazonaws.com:3000';
+      url = 'http://52.35.2.247:3000';
     }
 
     function createFlight() {
@@ -38,7 +38,9 @@
              xAxis = (aircraft.x / 20000) * 100;
              yAxis = (aircraft.y / 70000) * -100;
              alt = Math.floor(aircraft.altitude);
-             $('#positive').append('<div class="flight" style="left: ' + xAxis + '%; top: ' + yAxis + '%;"><span class="marker"></span><span class="flight_number" style="background-color: rgba(0,0,' + Math.floor((alt / 10000) * 255) + ',0.7);">' + aircraft.flight + ' @' + alt + 'm</span></div>');
+             if (aircraft.status !== 'diverted') {
+               $('#positive').append('<div class="flight" style="left: ' + xAxis + '%; top: ' + yAxis + '%;"><span class="marker"></span><span class="flight_number" style="background-color: rgba(0,0,' + Math.floor((alt / 10000) * 255) + ',0.7);">' + aircraft.flight + ' @' + alt + 'm</span></div>');
+             }
              $('.tabler table tbody').append('<tr><td>' + aircraft.flight + '</td><td>' + Math.floor(aircraft.x) + '</td><td>' + Math.floor(aircraft.y) + '</td><td>' + Math.floor(alt) + '</td><td>' + Math.floor(aircraft.speed) + 'm/s</td><td>' + aircraft.status + '</td></tr>');
           });
           $('tr:odd').addClass('odd');

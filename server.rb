@@ -47,4 +47,4 @@ class Server
 end
 
 
-Server.new(3000)
+Server.new(PORT)
