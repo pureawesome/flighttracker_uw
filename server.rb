@@ -4,7 +4,7 @@ require_relative 'login'
 
 class Server
   def initialize(port)
-    @server = TCPServer.open('localhost',port)
+    @server = TCPServer.open(port)
     @tracker = FlightTracker.new
     run
   end

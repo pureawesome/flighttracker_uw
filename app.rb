@@ -54,43 +54,37 @@ class FlightTracker
   FINAL_DESCENT_SLOPE = FINAL_APP_ALT / FINAL_LAND_DISTANCE  #0.053
 
   def get_x(land_distance)
-    ( 2.1e-12 * land_distance**3 ) - ( 4.41e-6 * land_distance**2 ) + ( 0.047 * land_distance ) + 16000
+    ( 2.1e-12 * land_distance**3 ) - ( 4.41e-6 * land_distance**2 ) + ( 0.047 * land_distance ) + 14822
   end
 
   def get_y(land_distance)
     ( 2.23e-14 * land_distance**4 ) - ( 2e-9 * land_distance**3 ) + ( 1.022e-4 * land_distance**2 ) - ( 5 * land_distance ) + 47000
   end
 
-  def get_altitude(land_distance, overall_land_distance, slope)
-    (overall_land_distance - land_distance) * slope + 800
+  def get_altitude(land_distance, overall_land_distance, slope, offset)
+    (overall_land_distance - land_distance) * slope + offset
+  end
+
+  def get_land_traveled(distance_traveled, slope)
+    distance_traveled / Math.sqrt(slope**2 + 1)
   end
 
   def computeSpeed(time)
     prev_flight = Flight.where.not(status: 'diverted').last
-    unless prev_flight.nil? and time < prev_flight.entry_time
-      #divert if plane enters too close.
-      puts (time - prev_flight.entry_time) * prev_flight.speed
-      # if ((time - prev_flight.entry_time) * prev_flight.speed) < MIN_DISTANCE
-      #   puts "Diverted: Too close."
-      #   return [128, 0, 'diverted']
-      # end
 
+    if prev_flight.nil? or time > prev_flight.final_start
+      speed = 128
+    else
       ideal_speed = (STANDARD_LENGTH - MIN_DISTANCE) / (prev_flight.final_start - time)
-
-      puts ideal_speed
-
       speed = ideal_speed > 128 ? 128 : ideal_speed
 
-      #divert if plan has to slow down too much.
       if speed < 105
         puts "Diverted: Ideal speed too slow."
-        return [128, 0, 'diverted']
+        return [105, 0, 'diverted']
       end
-    else
-      speed = 128
     end
 
-    final_approach_time = Time.now + (65291 / speed).seconds
+    final_approach_time = Time.now + (STANDARD_LENGTH / speed).seconds
     [speed, final_approach_time, 'descent']
   end
 
@@ -100,39 +94,42 @@ class FlightTracker
     else
       current_data = calculateDescent(flight, call_time)
     end
-    {flight: flight.flight_number, x: current_data[0], y: current_data[1], altitude: current_data[2], status: flight.status}
+    {flight: flight.flight_number, x: current_data[0], y: current_data[1], altitude: current_data[2], speed: current_data[3], status: flight.status}
   end
 
   def calculateDiverted(time_elapsed)
+    #elli = x**2/10 + y**2/2
+    #circum = 56406.23
+
     a = (time_elapsed % 360) * (Math::PI / 180)
-    x = 6000 + 3500 * Math::cos(a)
-    y = 35000 + 25000 * Math::sin(a)
+    x = 6000 + 5500 * Math::cos(a)
+    y = 40000 + 20000 * Math::sin(a)
     [x, y]
   end
 
   def calculateDescent(flight, call_time)
     distance_traveled = flight.speed * (call_time - flight.entry_time)
-    land_traveled = distance_traveled / Math.sqrt(DESCENT_SLOPE**2 + 1)
-    [get_x(land_traveled), get_y(land_traveled), get_altitude(land_traveled, STANDARD_LAND_DISTANCE, DESCENT_SLOPE)]
+    land_traveled = get_land_traveled(distance_traveled, DESCENT_SLOPE)
+    [get_x(land_traveled), get_y(land_traveled), get_altitude(land_traveled, STANDARD_LAND_DISTANCE, DESCENT_SLOPE, FINAL_APP_ALT), flight.speed]
   end
 
   def calculateFinal(flight, call_time)
     flight.status = 'landing'
 
-    deceleration = (FINAL_SPEED - flight.speed) / 2 * FINAL_LAND_DISTANCE  #v^2 = u^2 + 2as
+    deceleration = (FINAL_SPEED**2 - flight.speed**2) / (2 * FINAL_LAND_DISTANCE)  #v^2 = u^2 + 2as
     time_elapsed = call_time - flight.final_start
     distance_traveled = flight.speed * time_elapsed + (1/2) * deceleration * time_elapsed
-    land_distance = distance_traveled / Math.sqrt(FINAL_DESCENT_SLOPE**2 + 1)
+    land_distance = get_land_traveled(distance_traveled, FINAL_DESCENT_SLOPE)
 
     final_x = 0
-    final_y = land_distance
-    final_alt = (FINAL_LAND_DISTANCE - land_distance) * FINAL_DESCENT_SLOPE
+    final_alt = get_altitude(land_distance, FINAL_LAND_DISTANCE, FINAL_DESCENT_SLOPE, 0)
+    final_speed = flight.speed + deceleration * time_elapsed
 
     if final_alt < 0
       flight.status = 'landed'
-      [final_x, FINAL_LAND_DISTANCE, 0]
+      [final_x, FINAL_LAND_DISTANCE, 0, 0]
     else
-      [final_x, final_y, final_alt]
+      [final_x, land_distance, final_alt, final_speed]
     end
   end
 
@@ -150,7 +147,7 @@ class FlightTracker
 
       if flight.status == 'diverted'
         diverted_info = calculateDiverted(Time.now - flight.created_at)
-        flights_data << {flight: flight.flight_number, x: diverted_info[0], y: diverted_info[1], altitude: 10000, status: flight.status}
+        flights_data << {flight: flight.flight_number, x: diverted_info[0], y: diverted_info[1], altitude: 10000, speed: 105, status: flight.status}
       else
         flights_data << computeLocation(flight, call_time)
       end

@@ -31,7 +31,7 @@ thead {
 
 #map {
   width: 100%;
-  height: 600px;
+  height: 700px;
   border: 1px solid black;
   position:relative;
   overflow: visible;
@@ -39,8 +39,8 @@ thead {
 
 #positive {
   width: 100%;
-  height: 300px;
-  margin-top: 300px;
+  height: 350px;
+  margin-top: 350px;
   border-top: 1px solid black;
   position:relative;
   overflow:visible;
@@ -60,7 +60,7 @@ thead {
   .marker {
     position: absolute;
     display: block;
-    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30'><g stroke='black'><line x1='30' y1='30' x2='0' y2='0' stroke-width='2' /><line x1='30' y1='0' x2='0' y2='30' stroke-width='2' /></g></svg>")  no-repeat;
+    background: url("data:image/svg+xml;utf8,<svg id='Layer_1' xmlns='http://www.w3.org/2000/svg' xml:space='preserve' height='500px' viewBox='0 0 500 500' width='500px' version='1.1' y='0px' x='0px' xmlns:xlink='http://www.w3.org/1999/xlink' enable-background='new 0 0 500 500'><g id='_x32_'><path d='M250.2,59.002c11.001,0,20.176,9.165,20.176,20.777v122.24l171.12,95.954v42.779l-171.12-49.501v89.227l40.337,29.946v35.446l-60.52-20.18-60.502,20.166v-35.45l40.341-29.946v-89.227l-171.14,49.51v-42.779l171.14-95.954v-122.24c0-11.612,9.15-20.777,20.16-20.777z'/><path stroke='#000' stroke-width='0.2' d='M31.356,500.29c-17.26,0-31.256-13.995-31.256-31.261v-437.67c0-17.265,13.996-31.261,31.256-31.261h437.68c17.266,0,31.261,13.996,31.261,31.263v437.67c0,17.266-13.995,31.261-31.261,31.261h-437.67z' fill='none'/></g></svg>")  no-repeat;
     background-size: 20px 20px;
     left: -10px;
     top: -10px;

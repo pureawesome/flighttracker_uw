@@ -1,0 +1,6 @@
+source 'https://rubygems.org'
+gem 'activerecord', '~>4.2.4'
+gem 'activesupport', '~>4.2.4'
+gem 'daemons', '~>1.2.3'
+gem 'minitest', '~>5.8.1'
+gem 'mysql2', '~>0.3.16'
